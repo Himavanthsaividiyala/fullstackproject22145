@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Expense Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header class="shadow-sm">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="/">
+                    <i class="fas fa-wallet me-2 text-primary"></i>
+                    Expense Tracker
+                </a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container my-5">
+        <div id="alert-container"></div>
+
+        <div class="row g-5">
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">Add New Expense</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="expense-form" action="{{ url_for('add_expense') }}" method="post">
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" name="description" placeholder="e.g., Lunch with team" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="" disabled selected>Choose...</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Utilities">Utilities</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                             <div class="mb-3">
+                                <label for="payment_method" class="form-label">Payment Method</label>
+                                <select class="form-select" id="payment_method" name="payment_method" required>
+                                    <option value="" disabled selected>Choose...</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Debit Card">Debit Card</option>
+                                    <option value="Online">Online</option>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="amount" class="form-label">Amount (₹)</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" placeholder="0.00" step="0.01" min="0.01" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="date" class="form-label">Date</label>
+                                    <input type="date" class="form-control" id="date" name="date" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                <i class="fas fa-plus-circle me-2"></i>Add Expense
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card text-center text-white total-card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-uppercase">Total Expenses</h5>
+                        <p class="display-5 fw-bold">₹{{ "%.2f"|format(total_expenses) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Expense History</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Description</th>
+                                        <th scope="col">Category</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col" class="text-end">Amount</th>
+                                        <th scope="col" class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if expenses %}
+                                        {% for expense in expenses %}
+                                        <tr>
+                                            <td class="align-middle">
+                                                <div class="fw-bold">{{ expense.description }}</div>
+                                                <small class="text-muted">{{ expense.payment_method }}</small>
+                                            </td>
+                                            <td class="align-middle"><span class="badge category-badge-{{ expense.category.lower() }}">{{ expense.category }}</span></td>
+                                            <td class="align-middle">{{ expense.date }}</td>
+                                            <td class="align-middle text-end fw-bold">₹{{ "%.2f"|format(expense.amount) }}</td>
+                                            <td class="align-middle text-center">
+                                                <button class="btn btn-sm btn-outline-primary edit-btn" data-id="{{ expense.id }}" data-bs-toggle="modal" data-bs-target="#editExpenseModal">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form action="{{ url_for('delete_expense', expense_id=expense.id) }}" method="post" class="delete-form d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Expense">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted p-4">No expenses logged yet. Start by adding one!</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="editExpenseModal" tabindex="-1" aria-labelledby="editExpenseModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editExpenseModalLabel">Edit Expense</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form id="edit-expense-form" method="post">
+              <div class="modal-body">
+                    <input type="hidden" id="edit-id" name="id">
+                    <div class="mb-3">
+                        <label for="edit-description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="edit-description" name="description" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-category" class="form-label">Category</label>
+                        <select class="form-select" id="edit-category" name="category" required>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Health">Health</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="edit-payment_method" name="payment_method" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Debit Card">Debit Card</option>
+                            <option value="Online">Online</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit-amount" class="form-label">Amount (₹)</label>
+                            <input type="number" class="form-control" id="edit-amount" name="amount" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="edit-date" name="date" required>
+                        </div>
+                    </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+              </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+
+    <footer class="text-center text-muted py-4 mt-auto">
+        <p>&copy; 2025 Professional Expense Tracker. All Rights Reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

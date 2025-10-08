@@ -1,0 +1,53 @@
+/* static/css/style.css */
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7f6;
+}
+
+header {
+    background-color: #ffffff;
+}
+
+.total-card {
+    background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+}
+
+.card {
+    border-radius: 0.75rem;
+}
+
+.card-header {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+}
+
+/* Custom Category Badges */
+.category-badge-food {
+    background-color: #ffc107; /* Warning */
+    color: #000;
+}
+.category-badge-transport {
+    background-color: #fd7e14; /* Orange */
+}
+.category-badge-utilities {
+    background-color: #0dcaf0; /* Info */
+}
+.category-badge-entertainment {
+    background-color: #d63384; /* Pink */
+}
+.category-badge-health {
+    background-color: #198754; /* Success */
+}
+.category-badge-other {
+    background-color: #6c757d; /* Secondary */
+}
+
+/* Alert container for dynamic messages */
+#alert-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1050;
+    width: 350px;
+}
